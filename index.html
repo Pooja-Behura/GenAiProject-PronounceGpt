@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PronounceGPT · AI speaking studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;600;700&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head><body>
+<div class="aurora"><i></i><i></i><i></i></div><canvas id="confetti"></canvas>
+<header>
+  <div class="brand"><span class="mark">प</span><div><h1>Pronounce<em>GPT</em></h1><p>Generative-AI speaking studio · English, हिन्दी, मराठी & ଓଡ଼ିଆ</p></div></div>
+  <div class="hud"><span class="pill" id="aipill">● AI: checking…</span><span class="pill gold">⚡ <b id="hxp">0</b> XP</span><span class="pill">🔥 <b id="hstreak">0</b> day</span></div>
+</header>
+<nav id="tabs">
+  <button class="on" data-t="studio">🎙 Studio</button><button data-t="vocabulary">📚 Vocabulary</button><button data-t="coach">🤖 AI Coach</button>
+  <button data-t="challenge">🏆 Challenges</button><button data-t="lab">👄 Sound Lab</button><button data-t="progress">📈 Progress</button><button data-t="conversation">🗣 Live Translate</button>
+</nav>
+
+<main>
+<section id="studio" class="tab on"><div class="card">
+  <div class="switch">
+    <select id="fromLang" aria-label="Translate from"><option value="en">English</option><option value="hi">Hindi हिन्दी</option><option value="mr">Marathi मराठी</option><option value="or">Odia ଓଡ଼ିଆ</option></select>
+    <button id="swap" type="button">⇄</button>
+    <select id="toLang" aria-label="Translate to"><option value="hi" selected>Hindi हिन्दी</option><option value="en">English</option><option value="mr">Marathi मराठी</option><option value="or">Odia ଓଡ଼ିଆ</option></select>
+  </div>
+  <p class="heard">Speak, translate and practise in English, Hindi, Marathi and Odia. Microphone and voice quality depend on your browser/device language support.</p>
+  <textarea id="src" rows="3" placeholder="Start typing or tap Live voice - translation appears instantly…"></textarea>
+  <div class="livebar">
+    <label class="sw"><input type="checkbox" id="liveToggle" checked><span></span> Live translate while typing <i id="live" class="livedot"></i></label>
+    <label class="sw"><input type="checkbox" id="autoSpeak"><span></span> Auto-speak translation</label>
+    <button class="btn mic" id="liveVoice"><span class="dot"></span> Live voice</button>
+  </div>
+  <div class="row"><button class="btn ghost" id="listenSrc">🔊 Hear it</button><button class="btn primary" id="go">Translate →</button></div>
+  <div id="result" class="result hidden">
+    <label>Translation</label><div id="out" class="out"></div><div id="roman" class="roman"></div><div id="emo" class="emo"></div><div id="mode" class="modenote"></div>
+    <div class="mouthbox"><svg id="mouthsvg" viewBox="0 0 200 170" aria-label="mouth shape"></svg>
+      <div><label>Mouth coach</label><div id="mchar" class="mchar">–</div><div id="mtip" class="mtip">Press play to watch how your lips move.</div>
+      <button class="btn ghost" id="mplay">▶ Show mouth shape</button></div></div>
+    <div class="insight-panel"><div><span class="eyebrow">GENAI LAB</span><h3>✨ Meaning, tone & context</h3><p>Ask AI to explain the translation, suggest a natural alternative and flag cultural nuance.</p></div><button class="btn primary" id="insightBtn">Generate AI insight</button><pre id="insightBox" class="coachbox hidden"></pre></div>
+    <div class="row wrap"><button class="btn ghost" id="listen">🔊 Listen</button><button class="btn ghost" id="saveVocab">＋ Save to notebook</button>
+      <div class="speed"><span>Speed</span><input type="range" id="rate" min="0.5" max="1.2" step="0.1" value="0.9"></div>
+      <button class="btn mic" id="mic"><span class="dot"></span> Speak it</button></div>
+    <canvas id="viz" height="60"></canvas>
+  </div>
+  <div id="score" class="score hidden">
+    <div class="ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52"/><circle id="arc" cx="60" cy="60" r="52"/></svg><b id="num">0</b></div>
+    <div><h3 id="tip"></h3><div id="words" class="words"></div><p class="heard">We heard: <span id="heard"></span></p>
+      <button class="btn ghost" id="askAI">🎓 Ask AI Coach</button></div>
+  </div>
+  <pre id="coachbox" class="coachbox hidden"></pre>
+</div>
+<div class="card hist"><div class="hh"><h2>Recent phrases</h2><button id="clear" class="link">clear</button></div><ul id="hist"></ul></div>
+</section>
+
+<section id="vocabulary" class="tab"><div class="card">
+<div class="hh"><div><span class="eyebrow">PERSONAL LEARNING LIBRARY</span><h2>Vocabulary Notebook</h2><p class="heard">Save translations, search your collection, replay pronunciation and export your word list for revision.</p></div><a class="btn ghost" href="/api/vocabulary/export">⬇ Export CSV</a></div>
+<div class="notebook-stats"><div><b id="vCount">0</b><span>Saved phrases</span></div><div><b>4</b><span>Supported languages</span></div><div><b>CSV</b><span>Exportable revision list</span></div></div>
+<div class="row"><input id="vSearch" placeholder="Search phrases or translations…" aria-label="Search vocabulary"></div><div id="vocabList" class="vocab-list"><p class="heard">Your saved phrases will appear here.</p></div>
+</div></section>
+<section id="coach" class="tab"><div class="card">
+  <h2>Conversation partner</h2>
+  <div class="chips" id="scenes"><b data-s="cafe" class="on">☕ Cafe</b><b data-s="airport">✈️ Airport</b><b data-s="interview">💼 Interview</b><b data-s="market">🛍 Market</b></div>
+  <div class="chips" id="clang"><b data-l="hi" class="on">Practise Hindi</b><b data-l="en">Practise English</b></div>
+  <div id="chat" class="chat"></div>
+  <div class="row"><input id="msg" placeholder="Type or tap the mic and reply…"><button class="btn mic" id="cmic"><span class="dot"></span></button><button class="btn primary" id="send">Send</button></div>
+</div></section>
+
+<section id="challenge" class="tab"><div class="card">
+  <h2>AI-generated challenges</h2>
+  <div class="chips" id="lvl"><b data-v="easy" class="on">Easy</b><b data-v="medium">Medium</b><b data-v="hard">Tongue-twister</b></div>
+  <div class="chips" id="clg"><b data-l="en" class="on">English</b><b data-l="hi">हिन्दी</b></div>
+  <div class="row"><input id="topic" placeholder="Optional topic: travel, food, cricket…"><button class="btn primary" id="gen">Generate ✨</button></div>
+  <div id="chlist"></div>
+</div></section>
+
+<section id="lab" class="tab"><div class="card">
+  <h2>Sound Lab</h2><p class="heard">Tap a tile to hear the sound and see the mouth shape. Tiles come with a picture word to remember them.</p>
+  <div class="chips" id="labset"><b data-k="hi" class="on">हिन्दी sounds</b><b data-k="en">English tricky sounds</b></div>
+  <div class="mouthbox"><svg id="mouthsvg2" viewBox="0 0 200 170"></svg><div><label>Selected sound</label><div id="lchar" class="mchar">–</div><div id="ltip" class="mtip">Pick a tile below.</div></div></div>
+  <div id="tiles" class="tiles"></div></div></section>
+<section id="conversation" class="tab"><div class="card">
+  <span class="eyebrow">REAL-TIME SPEECH-TO-SPEECH</span><h2>🗣 Live Conversation Translator</h2>
+  <p class="heard">Speak in your selected source language, translate your speech, and play the translated voice. For best results, use Chrome or Edge and allow microphone access.</p>
+  <div class="switch"><select id="convFrom" aria-label="Conversation source language"><option value="en">English</option><option value="hi">Hindi हिन्दी</option><option value="mr">Marathi मराठी</option><option value="or">Odia ଓଡ଼ିଆ</option></select><button id="convSwap" type="button">⇄</button><select id="convTo" aria-label="Conversation target language"><option value="hi" selected>Hindi हिन्दी</option><option value="en">English</option><option value="mr">Marathi मराठी</option><option value="or">Odia ଓଡ଼ିଆ</option></select></div>
+  <div class="row wrap"><button class="btn mic" id="convStart"><span class="dot"></span> Start speaking</button><button class="btn ghost" id="convStop" disabled>Stop</button><label class="sw"><input type="checkbox" id="convAutoSpeak" checked><span></span> Speak translation automatically</label></div>
+  <div class="grid"><div><label>Recognised speech</label><div id="convSource" class="out" aria-live="polite">Your speech will appear here…</div></div><div><label>Translated speech</label><div id="convTranslation" class="out" aria-live="polite">Your translation will appear here…</div></div></div>
+  <div class="row wrap"><button class="btn primary" id="convTranslate">Translate text</button><button class="btn ghost" id="convReplay">🔊 Play translation</button><button class="btn ghost" id="convClear">Clear</button></div>
+  <p id="convStatus" class="heard" role="status">Ready. Press Start speaking to begin.</p>
+  <div class="card hist"><div class="hh"><h3>Conversation turns</h3><button id="convExport" class="link">Export transcript</button></div><ul id="convTurns"></ul></div>
+  <p class="heard">Note: browser speech recognition and available voices vary by device and language. Translation needs an internet connection or a configured AI provider.</p>
+</div></section>
+<section id="progress" class="tab"><div class="card">
+  <h2>Level <span id="plvl">1</span></h2><div class="bar"><i id="pbar"></i></div>
+  <div class="grid"><div><b id="sT">0</b><span>translations</span></div><div><b id="sA">0</b><span>attempts</span></div><div><b id="sAvg">0</b><span>avg score</span></div><div><b id="sBest">0</b><span>best score</span></div></div>
+  <canvas id="trend" height="110"></canvas>
+  <h2 style="margin-top:22px">Badges</h2><div id="badges" class="badges"></div>
+  <div class="daily"><label>Daily language spark</label><div id="dEn"></div><div id="dHi" class="out"></div><button class="btn ghost" id="dTry">Practise this →</button></div>
+</div></section>
+</main>
+<footer>PronounceGPT · Flask · SQLite · Translation API · Web Speech API · Generative AI learning studio</footer>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body></html>
